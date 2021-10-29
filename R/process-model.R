@@ -57,7 +57,7 @@ flux_process_model <- function(
   stopifnot_within(perturbations$region, sensitivities$region)
   stopifnot_within(sensitivities$model_id, control_mole_fraction$model_id)
 
-  stopifnot(!is.unsorted(control_mole_fraction$time))
+  # stopifnot(!is.unsorted(control_mole_fraction$time))
 
   regions <- sort(unique(perturbations$region))
   perturbations <- perturbations %>%
@@ -463,8 +463,8 @@ flux_aggregator <- function(model, filter_expr) {
         # kgCO2 / s / m ^ 2 => PgC
         flux_density
           * area
-          * 10 ^ (3 - 15) / 44.01
-          * 12.01
+          * 10 ^ (3 - 12) / 44.02
+          * (2 * 14)
           * lubridate::days_in_month(month_start)
           * 24 * 60 * 60,
         0
@@ -499,8 +499,8 @@ flux_aggregator <- function(model, filter_expr) {
       # kgCO2 / s / m ^ 2 => PgC
       flux = flux_density
         * area
-        * 10 ^ (3 - 15) / 44.01
-        * 12.01
+        * 10 ^ (3 - 12) / 44.02
+        * (2 * 14)
         * lubridate::days_in_month(month_start)
         * 24 * 60 * 60
     ) %>%

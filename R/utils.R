@@ -100,48 +100,6 @@ n_terms <- function(f) {
   ]
 }
 
-.cache_memory_fifo <- function(algo = 'sha512', size = 10) {
-  cache <- NULL
-  keys <- NULL
-
-  cache_reset <- function() {
-    cache <<- new.env(TRUE, emptyenv())
-    keys <<- NULL
-  }
-
-  cache_set <- function(key, value) {
-    assign(key, value, envir = cache)
-    keys <<- c(keys, key)
-    if (length(keys) > size) {
-      cache_drop_key(keys[[1]])
-    }
-  }
-
-  cache_get <- function(key) {
-    get(key, envir = cache, inherits = FALSE)
-  }
-
-  cache_has_key <- function(key) {
-    exists(key, envir = cache, inherits = FALSE)
-  }
-
-  cache_drop_key <- function(key) {
-    rm(list = key, envir = cache, inherits = FALSE)
-    keys <<- keys[keys != key]
-  }
-
-  cache_reset()
-  list(
-    digest = function(...) digest::digest(..., algo = algo),
-    reset = cache_reset,
-    set = cache_set,
-    get = cache_get,
-    has_key = cache_has_key,
-    drop_key = cache_drop_key,
-    keys = function() ls(cache)
-  )
-}
-
 #' @export
 scale_fill_wes_palette_c <- function(
   palette = 'Zissou1',

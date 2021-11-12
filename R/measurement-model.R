@@ -445,6 +445,9 @@ log_prior.flux_measurement_model <- function(model, parameters = model) {
   )
 }
 
+# create shared cache
+cm <- cachem::cache_mem()
+
 .make_Xt_Q_epsilon_X <- function(
   X,
   model,
@@ -461,7 +464,7 @@ log_prior.flux_measurement_model <- function(model, parameters = model) {
       Sigma_epsilon(params),
       attr(Sigma_epsilon, 'has_cross_correlations')
     )
-  }, cache = .cache_memory_fifo())
+  }, cache = cm)
 
   actual <- memoise::memoise(function(params) {
     parts <- get_parts(params[c('rho', 'ell')])
@@ -477,7 +480,7 @@ log_prior.flux_measurement_model <- function(model, parameters = model) {
         l + gamma_ij[k] * parts$x[[k]]
       }
     }, seq_len(nrow(parts$ij)), NULL)
-  }, cache = .cache_memory_fifo())
+  }, cache = cm)
 
   function(params) {
     actual(params[c('gamma', 'rho', 'ell')])
@@ -597,7 +600,7 @@ log_prior.flux_measurement_model <- function(model, parameters = model) {
       O = O,
       symmetric = TRUE
     )
-  }, cache = .cache_memory_fifo())
+  }, cache = cm)
   attr(output, 'has_cross_correlations') <- FALSE
   output
 }

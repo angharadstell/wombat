@@ -15,7 +15,7 @@
       if (!is.null(model[['a']]) && !is.na(model$a[i])) next
 
       output <- part_slice[[i]](
-        current$a[i],
+        current$a[i], # x0 in slice
         function(param_i) {
           current2 <- current
           current2$a[i] <- param_i
@@ -24,7 +24,7 @@
           if (!is.finite(log_prior_value)) return(log_prior_value)
 
           log_prior_value + alpha_log_likelihood(current2)
-        },
+        }, # logf in slice
         learn = warming_up,
         include_n_evaluations = TRUE
       )

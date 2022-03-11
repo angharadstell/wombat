@@ -22,33 +22,35 @@
   omega_unpack <- .make_omega_unpack(process_model, measurement_model)
 
   function(current) {
-    # page 38, Appendix A1
-    # Q_epsilon is the same as the paper? X is the basis functions
-    # chol_Q_omega_conditional_i is the choleski factorisation of (Q_alpha + t(basis) * Q_epsilon * basis) - aka measure of uncertainty on alpha 
+    # original WOMBAT paper, Appendix A1
     chol_Q_omega_conditional_i <- chol_Q_omega_conditional(current)
-    # mu_omega_conditional is the mean of alpha
-    # this isnt quite the same as the paper?
-    # what actually is Z2_tilde?
-    # X isn't transposed, Q_omega(current) %*% mu_omega(current) isn't in paper
     mu_omega_conditional <- as.vector(.chol_solve(
       chol_Q_omega_conditional_i,
       crossprod(X, solve(Sigma_epsilon(current), Z2_tilde))
       + Q_omega(current) %*% mu_omega(current)
     ))
-    # new sample is from gaussian distrib with mean mu_omega_conditional, choleski chol_Q_omega_conditional_i
-    omega <- (
-      mu_omega_conditional
-      + .sample_normal_precision_chol(chol_Q_omega_conditional_i)
-    )
-    # attempt to limit at -1
-    # omega <- TruncatedNormal::rtmvnorm(n = 1,
-    #                                    mu = mu_omega_conditional,
-    #                                    sigma = chol2inv(chol_Q_omega_conditional_i),
-    #                                    lb = rep(-1, ncol(chol_Q_omega_conditional_i)))
+    # draw new samples for omegas (alphas and betas)
+    # ORIG omega <- (
+    # ORIG   mu_omega_conditional +
+    # ORIG   .sample_normal_precision_chol(chol_Q_omega_conditional_i)
+    # ORIG )
+    # limit omegas to -1 or greater
+    # this will also limit betas as well as alphas!
+    # So don't want to use this if solving for betas
+    # Arg 1: The current value of the chain
+    # Arg 2: The conditional mean
+    # Arg 3: The conditional covariance matrix
+    # Arg 4: Tuning parameter, see hmc-exact-truncated.R
+    omega <- sample_alpha_truncated(
+      current$alpha,
+      mu = mu_omega_conditional,
+      sigma = chol2inv(chol_Q_omega_conditional_i),
+      T = pi / 2)
 
     # check omegas have been correctly adjusted to greater than or equal to -1
-    log_debug(paste("Minimum omega value:", min(omega)))
-    log_debug(paste("Ratio of omegas more than or equal to -1:", sum(omega >= -1) / length(omega)))
+    log_debug(paste('Minimum omega value:', min(omega)))
+    log_debug(paste('Ratio of omegas more than or equal to -1:',
+              sum(omega >= -1) / length(omega)))
 
     omega_unpack(current, omega)
   }

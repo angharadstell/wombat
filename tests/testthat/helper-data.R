@@ -48,6 +48,7 @@ sensitivities <- expand.grid(
   region = regions
 ) %>%
   mutate(co2_sensitivity = 1)
+sensitivities$co2_sensitivity[[23]] <- 2
 
 observations <- data.frame(
   observation_id = 1 : 3,

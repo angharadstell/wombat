@@ -57,7 +57,9 @@ flux_process_model <- function(
   stopifnot_within(perturbations$region, sensitivities$region)
   stopifnot_within(sensitivities$model_id, control_mole_fraction$model_id)
 
-  # stopifnot(!is.unsorted(control_mole_fraction$time))
+  # as H is ordered by model_id:
+  stopifnot('control_mole_fraction must be ordered by model_id' =
+  !is.unsorted(control_mole_fraction$model_id))
 
   regions <- sort(unique(perturbations$region))
   perturbations <- perturbations %>%

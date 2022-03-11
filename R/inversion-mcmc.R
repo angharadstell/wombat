@@ -74,6 +74,13 @@ inversion_mcmc <- function(
   generated_process_model <- generate(process_model)[
     c('kappa', 'alpha', 'eta', 'a', 'w')
   ]
+  # The starting point for the inversion is generated from sampling the
+  # process and measurement models. This is overwritten by any defined
+  # value parameters in the "start" variable. This is again overwritten
+  # by any parameters that have been set in the process and measurement
+  # models that are not NULL. (Parameters set to NULL in the process
+  # and measurement models are ones where every value is solved for in
+  # the inversion).
   start <- .extend_list(
     c(
       generated_process_model,
@@ -83,6 +90,9 @@ inversion_mcmc <- function(
     .remove_nulls(process_model[c('kappa', 'alpha', 'eta', 'a', 'w')]),
     .remove_nulls(measurement_model[c('beta', 'gamma', 'rho', 'ell')])
   )[c('kappa', 'alpha', 'eta', 'beta', 'a', 'w', 'gamma', 'rho', 'ell')]
+  # If the a and w parameters contain NAs, it is because some of them
+  # have been fixed, and we still want to solve for the ones that are
+  # marked as NA. Therefore, use the generated values for these ones.
   if (any(is.na(start$a))) {
     start$a[is.na(start$a)] <- generated_process_model$a[is.na(start$a)]
   }

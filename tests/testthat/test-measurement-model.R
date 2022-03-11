@@ -72,3 +72,38 @@ test_that('update works', {
   )
   expect_equal(updated_model$gamma, 1)
 })
+
+
+
+test_that('matching works', {
+  control_mole_fraction$co2[[2]] <- 1
+
+  process_model <- flux_process_model(
+    control_emissions,
+    control_mole_fraction,
+    perturbations,
+    sensitivities
+  )
+  model <- flux_measurement_model(
+    observations,
+    ~ instrument_mode,
+    observations$observation_id,
+    process_model,
+    attenuation_variables = 'instrument_mode'
+  )
+
+  process_sample <- generate(process_model)
+  # as all sensitivities (bar the one 2) are 1,
+  # expect not altered output to be nregions*nmonths*1
+  process_sample$alpha <- rep(1, dim(process_model$H)[[2]])
+  # eta makes things confusing, turn it off
+  process_sample$eta <- rep(0, length(process_sample$eta))
+
+  # check matching works on output
+  calculated_Y2 <- calculate(process_model, 'Y2', process_sample)
+  expect_equal(as.numeric(model$C %*% calculated_Y2),
+               c(6, 7, 7))
+  # check matching works on H
+  expect_equal(model$C %*% process_model$H,
+               process_model$H[observations$observation_id, ])
+})

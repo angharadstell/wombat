@@ -1,6 +1,7 @@
 #' @export
 inversion_mcmc <- function(
   n_iterations = 1000,
+  truncation = TRUE,
   measurement_model,
   process_model,
   start = NULL,
@@ -48,6 +49,7 @@ inversion_mcmc <- function(
   omega_sampler <- .make_omega_sampler(
     measurement_model,
     process_model,
+    truncation,
     Xt_Q_epsilon_X = Xt_Q_epsilon_X
   )
   a_sampler <- .make_a_sampler(process_model, tuning[['a']])

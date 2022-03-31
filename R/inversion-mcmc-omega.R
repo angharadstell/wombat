@@ -1,6 +1,7 @@
 .make_omega_sampler <- function(
   measurement_model,
   process_model,
+  truncation,
   X = .make_X_omega(process_model, measurement_model),
   Sigma_epsilon = .make_Sigma_epsilon(measurement_model),
   Xt_Q_epsilon_X = .make_Xt_Q_epsilon_X(
@@ -30,10 +31,12 @@
       + Q_omega(current) %*% mu_omega(current)
     ))
     # draw new samples for omegas (alphas and betas)
-    # ORIG omega <- (
-    # ORIG   mu_omega_conditional +
-    # ORIG   .sample_normal_precision_chol(chol_Q_omega_conditional_i)
-    # ORIG )
+    if (!truncation) {
+      omega <- (
+        mu_omega_conditional +
+        .sample_normal_precision_chol(chol_Q_omega_conditional_i)
+      )
+    } else {
     # limit omegas to -1 or greater
     # this will also limit betas as well as alphas!
     # So don't want to use this if solving for betas
@@ -41,11 +44,12 @@
     # Arg 2: The conditional mean
     # Arg 3: The conditional covariance matrix
     # Arg 4: Tuning parameter, see hmc-exact-truncated.R
-    omega <- sample_alpha_truncated(
-      current$alpha,
-      mu = mu_omega_conditional,
-      sigma = chol2inv(chol_Q_omega_conditional_i),
-      T = pi / 2)
+      omega <- sample_alpha_truncated(
+        current$alpha,
+        mu = mu_omega_conditional,
+        sigma = chol2inv(chol_Q_omega_conditional_i),
+        T = pi / 2)
+    }
 
     # check omegas have been correctly adjusted to greater than or equal to -1
     log_debug(paste('Minimum omega value:', min(omega)))
